@@ -11,6 +11,8 @@ def initIDToObject(tasks):
     
 # returns list of Task objects
 def chooseTasks(idToProb):
+    if not idToProb:
+        return None
     ids = []
     probs = []
     for id, prob in idToProb:
@@ -20,7 +22,7 @@ def chooseTasks(idToProb):
     #     ids.append(id)
     # for prob in idToProb:
     #     probs.append(prob)
-    tasks = np.random.choice(ids, len(ids)//2, replace = False, p=probs)
+    tasks = np.random.choice(ids, len(ids)//4, replace = False, p=probs)
 
     taskObjects = []
     for id in tasks:
