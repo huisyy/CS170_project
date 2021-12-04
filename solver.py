@@ -1,8 +1,8 @@
+import numpy as np
 from numpy.core.fromnumeric import choose
 from parse import read_input_file, write_output_file
 import os
 import math
-import numpy as np
 import helperFunctions as hF
 
 # solves
