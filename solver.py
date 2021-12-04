@@ -106,6 +106,7 @@ def scorer(time, tasks):
 run_folders = ['small']
 
 if __name__ == '__main__':
+    print("hi")
     for folder in run_folders:
         # for i in range(1, 301):
         for i in range(1, 2):
