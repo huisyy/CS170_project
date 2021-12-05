@@ -5,7 +5,8 @@ import math
 import numpy as np
 import helperFunctions as hF
 
-# solves
+END_TIME = 1440
+
 def solve(tasks):
     """
     Args:
@@ -16,53 +17,44 @@ def solve(tasks):
     # initializes global task ID to object dictionary
     hF.initIDToObject(tasks)
     
-    finalProfit, taskList = helper(0, tasks, [], 0)
-
-    return [task.task_id for task in taskList]
-
-# helper
-def helper(currTime, potentialTasks, currTasks, currProfit):
-    """
-    Args:
-        currTime[int] 
-        potentialTasks[list of task objects]
-        currTasks[list of task objects]
-        currProfit[integer]
-    Returns:
-        final profit, list of task objects  
-    """
-    if currTime == 1440:
-        return currProfit, currTasks
-    idToProb = scorer(currTime, potentialTasks)
-    #chooseTasks returns a dictionary of ids to probabilities
-    potentialTasks = hF.chooseTasks(idToProb)
-    if not potentialTasks: # if no potential tasks are available
-        return currProfit, currTasks
+    finalProfit, chosenTasks = helper(0, tasks)
+    print("final Profit!", finalProfit)
     
-    maxProfit = -math.inf
-    chosenTasks = None
-    #chooseTasks returns a dictionary of ids to probabilities
-    for potentialTask in potentialTasks:
-        tasks_copy = tasks.copy()
-        tasks_copy.remove(potentialTask) 
-        potentialTaskProfit = hF.decayCalculator(potentialTask.perfect_benefit, potentialTask.duration + currTime - potentialTask.deadline)
-        newProfit, newTasks = helper(currTime + potentialTask.duration, tasks_copy, currTasks + [potentialTask], currProfit + potentialTaskProfit)
-        if newProfit > maxProfit:
-            maxProfit = newProfit
-            chosenTasks = newTasks
+    return [task.task_id for task in chosenTasks]
 
-    # returns profit, task
-    return maxProfit, currTasks + chosenTasks
+def helper(currTime, potentialTasks):
+    if currTime >= END_TIME or not potentialTasks:
+        return 0, []
 
+    currMaxProfit = -math.inf
+    currChosenTasks = None
 
+    # deterministic choice of best task so far (greedy)
+    idToProb, best_task, best_score = scorer(currTime, potentialTasks)
+    # tasks = hF.chooseTasks(idToProb)
+    if best_task == None:
+        return 0, []
 
+    for t in [best_task]:
+        newPotentialTasks = get_potential_tasks(t, potentialTasks.copy()) # 
+        childTotalProfit, childChosenTasks = helper(currTime + t.duration, newPotentialTasks)
+        tTotalProfit = hF.decayCalculator(t.perfect_benefit, currTime + t.duration - t.deadline) + childTotalProfit
+        if tTotalProfit > currMaxProfit:
+            currMaxProfit = tTotalProfit
+            currChosenTasks = [t] + childChosenTasks
 
-#Reupdates the score for every task. Takes in the current time and possible tasks.
+    return currMaxProfit, currChosenTasks
+
+# removes task from potentialTasks and returns a new copy
+def get_potential_tasks(task, potentialTasks):
+    potentialTasksCopy = potentialTasks.copy()
+    potentialTasksCopy.remove(task)
+    return potentialTasksCopy
 
 def by_value(item):
     return item[1]
 
-
+#Idea - create multiple scorers and take the max out of all of them
 def scorer(time, tasks):
     """
     Args:
@@ -72,44 +64,39 @@ def scorer(time, tasks):
         dictionary mapping task IDs to their normalized score   
     """
     scores = {}
+    best_task, best_score = None, -math.inf
     for task in tasks:
         if time + task.duration > 1440:
             continue
-        if time + task.duration > task.deadline:
-            score = task.perfect_benefit * (math.e ** (-.017*(time + task.duration - task.deadline)))
-        else:
-            score = task.perfect_benefit
-        
+
+        score = hF.decayCalculator(task.perfect_benefit, time + task.duration - task.deadline)
         score = (score/task.duration) 
         scores[task.task_id] = score
-    
+        if score > best_score:
+            best_score = score
+            best_task = task
+
     if not scores: # if there are no possible tasks
-        return None
+        return None, best_task, best_score
     
     #normalize the vector
     normalized = hF.normalizeVector(scores)
-    sortedTasks = sorted(normalized.items(), key=by_value)
     
-    return sortedTasks
+    return normalized, best_task, best_score
     
 
-# return a dictionary
 
 
-
-
-# Calculates the profits if tasks are done in this order
 
 
 
 # run_folders = ['large', 'medium', 'small']
-run_folders = ['small']
+run_folders = ['large']
 
 if __name__ == '__main__':
-    print("hi")
     for folder in run_folders:
-        # for i in range(1, 301):
-        for i in range(1, 2):
+        for i in range(289, 290):
+        # for i in range(2, 3):
             if folder == 'small' and i == 184:
                 continue
             output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'

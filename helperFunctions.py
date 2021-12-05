@@ -12,17 +12,23 @@ def initIDToObject(tasks):
 # returns list of Task objects
 def chooseTasks(idToProb):
     if not idToProb:
-        return None
+        return []
     ids = []
     probs = []
-    for id, prob in idToProb:
+    for id, prob in idToProb.items():
         ids.append(id)
         probs.append(prob)
-    # for id in idToProb:
-    #     ids.append(id)
-    # for prob in idToProb:
-    #     probs.append(prob)
-    tasks = np.random.choice(ids, len(ids)//4, replace = False, p=probs)
+    
+    if len(ids) > 150:
+        divider = 3
+    elif len(ids) >= 6:
+        divider = 3
+    elif len(ids) < 6:
+        divider = 1
+
+    tasks = np.random.choice(ids, len(ids) // divider, replace = False, p=probs)
+    if len(tasks) == 0:
+        tasks = np.random.choice(ids, 1, replace = False, p=probs)
 
     taskObjects = []
     for id in tasks:
@@ -30,6 +36,7 @@ def chooseTasks(idToProb):
     return taskObjects #a list of tasks
 
 def normalizeVector(dict):
+    """If mutating input, should either return None or make a copy and return the copy"""
     normFactor = 1.0/sum(dict.values())
     for key in dict:
         dict[key] = dict[key]*normFactor
