@@ -8,7 +8,7 @@ import helperFunctions as hF
 
 END_TIME = 1440
 BRANCH_END = 0
-NUM_LEVELS_BRANCH = 13
+NUM_LEVELS_BRANCH = 3 #13
 SUM_PROFITS = 0
 
 def solve(tasks):
@@ -40,7 +40,7 @@ def helper(currTime, potentialTasks):
     currChosenTasks = None
 
     if len(potentialTasks) > BRANCH_END:
-        best_tasks = getBestTasks(currTime, potentialTasks, 2) # add num of tasks
+        best_tasks = getBestTasks(currTime, potentialTasks, 3) # add num of tasks
     else:
         best_tasks = getBestTasks(currTime, potentialTasks)
     # numTasks = max(1, int((1440-currTime)/1440 * 2.5))
@@ -69,21 +69,27 @@ def get_potential_tasks(task, potentialTasks):
 # returns a list of task objects
 def getBestTasks(currTime, potentialTasks, numTasks=1):
     scores = []
+
+    #linear combination:
+    # decay(perfect_benefit) + perfect_benefit/duration + deadline incentive
     for task in potentialTasks:
+        #if there's no way you could complete the task before 1440 minutes
         if currTime + task.duration > 1440:
             continue
-        score = hF.decayCalculator(task.perfect_benefit, currTime + task.duration - task.deadline)
-        score = (score/task.duration)
+
+        score = .5 * hF.decayCalculator(task.perfect_benefit, currTime + task.duration - task.deadline)
+        score += 2 * task.perfect_benefit/task.duration
+        #score = 2 * (score/task.duration)
         if task.deadline - currTime == 0:
-            deadlineIncentive = 0
+            deadlineIncentive = 0.1
         else:
-            deadlineIncentive = .8/(task.deadline - currTime)
+            #the farther away your deadline is the less incentive you have
+            deadlineIncentive = 47 * (.8/(task.deadline - currTime))
         score += deadlineIncentive
         task_obj = hF.IDToObject(task.task_id)
         scores.append([task_obj, score])
         
     sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
-    # import ipdb;ipdb.set_trace()
     sorted_scores = list(map(lambda x: x[0], sorted_scores))
     if len(sorted_scores) < 1:
         return []
@@ -94,13 +100,23 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
 
 
 def main(folder, start_idx, end_idx):
-    for i in range(start_idx, min(300, end_idx) + 1):
-        if folder == 'small' and i == 184:
-            continue
-        output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
-        tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
-        output = solve(tasks)
-        write_output_file(output_path, output)
+    # for i in range(start_idx, min(300, end_idx) + 1):
+    #     if folder == 'small' and i == 184:
+    #         continue
+    #     output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
+    #     tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
+    #     output = solve(tasks)
+    #     write_output_file(output_path, output)
+        
+    # print("avg profit", SUM_PROFITS/899)
+    for folder in ['small', 'medium', 'large']:
+        for i in range(1, 301):
+            if folder == 'small' and i == 184:
+                continue
+            output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
+            tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
+            output = solve(tasks)
+            write_output_file(output_path, output)
         
     print("avg profit", SUM_PROFITS/899)
 
@@ -109,9 +125,10 @@ def main(folder, start_idx, end_idx):
 run_folders = ['large']
 
 if __name__ == '__main__':
-    folder = sys.argv[1]
-    start_idx = int(sys.argv[2])
-    end_idx = int(sys.argv[3])
-    main(folder, start_idx, end_idx)
+    main("dummy", 1, 300)
+    # folder = sys.argv[1]
+    # start_idx = int(sys.argv[2])
+    # end_idx = int(sys.argv[3])
+    # main(folder, start_idx, end_idx)
             
 
