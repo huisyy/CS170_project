@@ -92,20 +92,25 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
 
 
 
+def main(folder, start_idx, end_idx):
+    for i in range(start_idx, min(300, end_idx) + 1):
+        if folder == 'small' and i == 184:
+            continue
+        output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
+        tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
+        output = solve(tasks)
+        write_output_file(output_path, output)
+        
+    print("avg profit", SUM_PROFITS/899)
+
 
 # run_folders = ['large', 'medium', 'small']
-run_folders = ['small']
+run_folders = ['large']
 
 if __name__ == '__main__':
-    for folder in run_folders:
-        for i in range(1, 301):
-        # for i in range(2, 3):
-            if folder == 'small' and i == 184:
-                continue
-            output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
-            tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
-            output = solve(tasks)
-            write_output_file(output_path, output)
-    print("avg profit", SUM_PROFITS/899)
+    folder = sys.argv[1]
+    start_idx = sys.argv[2]
+    end_idx = sys.argv[3]
+    main(folder, start_idx, end_idx)
             
 
