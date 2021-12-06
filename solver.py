@@ -7,7 +7,7 @@ import helperFunctions as hF
 
 END_TIME = 1440
 BRANCH_END = 0
-NUM_LEVELS_BRANCH = 4
+NUM_LEVELS_BRANCH = 13
 SUM_PROFITS = 0
 
 def solve(tasks):
@@ -42,6 +42,9 @@ def helper(currTime, potentialTasks):
         best_tasks = getBestTasks(currTime, potentialTasks, 2) # add num of tasks
     else:
         best_tasks = getBestTasks(currTime, potentialTasks)
+    # numTasks = max(1, int((1440-currTime)/1440 * 2.5))
+    # print(numTasks)
+    # best_tasks = getBestTasks(currTime, potentialTasks, numTasks) # add num of tasks
 
     if not best_tasks:
         return 0, []
@@ -90,8 +93,8 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
 
 
 
-run_folders = ['large', 'medium', 'small']
-# run_folders = ['large']
+# run_folders = ['large', 'medium', 'small']
+run_folders = ['small']
 
 if __name__ == '__main__':
     for folder in run_folders:
