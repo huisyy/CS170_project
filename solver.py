@@ -23,16 +23,20 @@ def solve(tasks):
     return [task.task_id for task in chosenTasks]
 
 def helper(currTime, potentialTasks):
-    if currTime >= END_TIME or not potentialTasks:
+    print("current time", currTime)
+    print("potential tasks", len(potentialTasks))
+    if currTime >= END_TIME or len(potentialTasks) == 0:
         return 0, []
 
     currMaxProfit = -math.inf
     currChosenTasks = None
 
-    # deterministic choice of best task so far (greedy)
-    idToProb, best_tasks, best_score = scorer(currTime, potentialTasks)
-    # tasks = hF.chooseTasks(idToProb)
-    if best_tasks == None:
+    if len(potentialTasks) > 90:
+        best_tasks = getBestTasks(currTime, potentialTasks, 2) # add num of tasks
+    else:
+        best_tasks = getBestTasks(currTime, potentialTasks)
+
+    if not best_tasks:
         return 0, []
 
     for t in best_tasks:
@@ -51,62 +55,41 @@ def get_potential_tasks(task, potentialTasks):
     potentialTasksCopy.remove(task)
     return potentialTasksCopy
 
-def by_value(item):
-    return item[1]
-
-#Idea - create multiple scorers and take the max out of all of them
-def scorer(time, tasks, numOFTasks=2):
-    """
-    Args:
-        time[int]: the current time
-        tasks: list of Task objects
-    Returns:
-        dictionary mapping task IDs to their normalized score   
-    """
-    scores = {}
-    best_task, best_score, second_best_task, second_score = None, -math.inf, None, -math.inf
-    for task in tasks:
-        if time + task.duration > 1440:
+# returns a list of task objects
+def getBestTasks(currTime, potentialTasks, numTasks=1):
+    scores = []
+    for task in potentialTasks:
+        if currTime + task.duration > 1440:
             continue
-
-        score = hF.decayCalculator(task.perfect_benefit, time + task.duration - task.deadline)
+        score = hF.decayCalculator(task.perfect_benefit, currTime + task.duration - task.deadline)
         score = (score/task.duration) 
-        scores[task.task_id] = score
-    scores = dict(sorted(scores, key=lambda item: item[1]))
+        task_obj = hF.IDToObject(task.task_id)
+        scores.append([task_obj, score])
         
-    if not scores:
-        if numOFTasks == 2: # if there are no possible tasks
-            return None, [best_task, second_best_task], [best_score, second_score]
-        else:
-            return None, [best_task], best_score
-    
-    
-    #normalize the vector
-    normalized = hF.normalizeVector(scores)
-    best_task = scores[0]
-    best_score = scores[0][1]
-    second_best_task = scores[1]
-    second_score = scores[1][0]
-    
-    return normalized, [best_task, second_best_task], [best_score, second_score]
-    
+    sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
+    # import ipdb;ipdb.set_trace()
+    sorted_scores = list(map(lambda x: x[0], sorted_scores))
+    if len(sorted_scores) < 1:
+        return []
+    return sorted_scores[:min(len(sorted_scores), numTasks)]
 
 
 
 
 
 
-run_folders = ['large', 'medium', 'small']
-# run_folders = ['large']
+# run_folders = ['large', 'medium', 'small']
+run_folders = ['large']
 
 if __name__ == '__main__':
     for folder in run_folders:
-        for i in range(1, 301):
-        # for i in range(2, 3):
+        # for i in range(1, 301):
+        for i in range(2, 3):
             if folder == 'small' and i == 184:
                 continue
             output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
             tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
             output = solve(tasks)
             write_output_file(output_path, output)
+            
 

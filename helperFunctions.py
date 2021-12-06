@@ -4,6 +4,9 @@ import math
 
 idToObject = {}
 
+def IDToObject(ID):
+    return idToObject[ID]
+
 def initIDToObject(tasks):
     global idToObject
     for task in tasks:
