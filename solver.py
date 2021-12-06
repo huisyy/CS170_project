@@ -6,6 +6,9 @@ import math
 import helperFunctions as hF
 
 END_TIME = 1440
+BRANCH_END = 0
+NUM_LEVELS_BRANCH = 3
+SUM_PROFITS = 0
 
 def solve(tasks):
     """
@@ -14,24 +17,28 @@ def solve(tasks):
     Returns:
         output: list of igloos in order of polishing  
     """
+    global BRANCH_END, SUM_PROFITS
+    BRANCH_END = len(tasks) - NUM_LEVELS_BRANCH
     # initializes global task ID to object dictionary
     hF.initIDToObject(tasks)
     
     finalProfit, chosenTasks = helper(0, tasks)
     print("final Profit!", finalProfit)
     
+    # keeping track of avg profit
+    SUM_PROFITS += finalProfit
     return [task.task_id for task in chosenTasks]
 
 def helper(currTime, potentialTasks):
-    print("current time", currTime)
-    print("potential tasks", len(potentialTasks))
+    # print("current time", currTime)
+    # print("potential tasks", len(potentialTasks))
     if currTime >= END_TIME or len(potentialTasks) == 0:
         return 0, []
 
     currMaxProfit = -math.inf
     currChosenTasks = None
 
-    if len(potentialTasks) > 90:
+    if len(potentialTasks) > BRANCH_END:
         best_tasks = getBestTasks(currTime, potentialTasks, 2) # add num of tasks
     else:
         best_tasks = getBestTasks(currTime, potentialTasks)
@@ -62,7 +69,8 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
         if currTime + task.duration > 1440:
             continue
         score = hF.decayCalculator(task.perfect_benefit, currTime + task.duration - task.deadline)
-        score = (score/task.duration) 
+        score = (score/task.duration)
+         
         task_obj = hF.IDToObject(task.task_id)
         scores.append([task_obj, score])
         
@@ -78,18 +86,19 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
 
 
 
-# run_folders = ['large', 'medium', 'small']
-run_folders = ['large']
+run_folders = ['large', 'medium', 'small']
+# run_folders = ['large']
 
 if __name__ == '__main__':
     for folder in run_folders:
-        # for i in range(1, 301):
-        for i in range(2, 3):
+        for i in range(1, 301):
+        # for i in range(2, 3):
             if folder == 'small' and i == 184:
                 continue
             output_path = 'outputs/' + folder + '/' + folder + '-' + str(i) + '.out'
             tasks = read_input_file('inputs/' + folder + '/' + folder + '-' + str(i) + '.in')
             output = solve(tasks)
             write_output_file(output_path, output)
+    print("avg profit", SUM_PROFITS/899)
             
 
