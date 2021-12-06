@@ -7,7 +7,7 @@ import helperFunctions as hF
 
 END_TIME = 1440
 BRANCH_END = 0
-NUM_LEVELS_BRANCH = 3
+NUM_LEVELS_BRANCH = 4
 SUM_PROFITS = 0
 
 def solve(tasks):
@@ -70,7 +70,11 @@ def getBestTasks(currTime, potentialTasks, numTasks=1):
             continue
         score = hF.decayCalculator(task.perfect_benefit, currTime + task.duration - task.deadline)
         score = (score/task.duration)
-         
+        if task.deadline - currTime == 0:
+            deadlineIncentive = 0
+        else:
+            deadlineIncentive = .8/(task.deadline - currTime)
+        score += deadlineIncentive
         task_obj = hF.IDToObject(task.task_id)
         scores.append([task_obj, score])
         
