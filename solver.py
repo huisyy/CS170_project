@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from numpy.core.fromnumeric import choose
 from parse import read_input_file, write_output_file
 import os
@@ -109,8 +110,8 @@ run_folders = ['large']
 
 if __name__ == '__main__':
     folder = sys.argv[1]
-    start_idx = sys.argv[2]
-    end_idx = sys.argv[3]
+    start_idx = int(sys.argv[2])
+    end_idx = int(sys.argv[3])
     main(folder, start_idx, end_idx)
             
 
