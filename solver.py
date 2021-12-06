@@ -30,12 +30,12 @@ def helper(currTime, potentialTasks):
     currChosenTasks = None
 
     # deterministic choice of best task so far (greedy)
-    idToProb, best_task, best_score = scorer(currTime, potentialTasks)
+    idToProb, best_tasks, best_score = scorer(currTime, potentialTasks)
     # tasks = hF.chooseTasks(idToProb)
-    if best_task == None:
+    if best_tasks == None:
         return 0, []
 
-    for t in [best_task]:
+    for t in best_tasks:
         newPotentialTasks = get_potential_tasks(t, potentialTasks.copy()) # 
         childTotalProfit, childChosenTasks = helper(currTime + t.duration, newPotentialTasks)
         tTotalProfit = hF.decayCalculator(t.perfect_benefit, currTime + t.duration - t.deadline) + childTotalProfit
@@ -55,7 +55,7 @@ def by_value(item):
     return item[1]
 
 #Idea - create multiple scorers and take the max out of all of them
-def scorer(time, tasks):
+def scorer(time, tasks, numOFTasks=2):
     """
     Args:
         time[int]: the current time
@@ -64,7 +64,7 @@ def scorer(time, tasks):
         dictionary mapping task IDs to their normalized score   
     """
     scores = {}
-    best_task, best_score = None, -math.inf
+    best_task, best_score, second_best_task, second_score = None, -math.inf, None, -math.inf
     for task in tasks:
         if time + task.duration > 1440:
             continue
@@ -72,17 +72,23 @@ def scorer(time, tasks):
         score = hF.decayCalculator(task.perfect_benefit, time + task.duration - task.deadline)
         score = (score/task.duration) 
         scores[task.task_id] = score
-        if score > best_score:
-            best_score = score
-            best_task = task
-
-    if not scores: # if there are no possible tasks
-        return None, best_task, best_score
+    scores = dict(sorted(scores, key=lambda item: item[1]))
+        
+    if not scores:
+        if numOFTasks == 2: # if there are no possible tasks
+            return None, [best_task, second_best_task], [best_score, second_score]
+        else:
+            return None, [best_task], best_score
+    
     
     #normalize the vector
     normalized = hF.normalizeVector(scores)
+    best_task = scores[0]
+    best_score = scores[0][1]
+    second_best_task = scores[1]
+    second_score = scores[1][0]
     
-    return normalized, best_task, best_score
+    return normalized, [best_task, second_best_task], [best_score, second_score]
     
 
 
@@ -90,12 +96,12 @@ def scorer(time, tasks):
 
 
 
-# run_folders = ['large', 'medium', 'small']
-run_folders = ['large']
+run_folders = ['large', 'medium', 'small']
+# run_folders = ['large']
 
 if __name__ == '__main__':
     for folder in run_folders:
-        for i in range(289, 290):
+        for i in range(1, 301):
         # for i in range(2, 3):
             if folder == 'small' and i == 184:
                 continue
